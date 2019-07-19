@@ -21,7 +21,12 @@ function _get_go {
 
 function _get_pip {
  echo "python deps..."
+ wget -N -P $dest_dir http://mirrors.kernel.org/ubuntu/pool/main/p/python-defaults/python_2.7.15~rc1-1_amd64.deb
+ wget -N -P $dest_dir https://packages.ubuntu.com/bionic/build-essential
+ wget -N -P $dest_dir http://mirrors.kernel.org/ubuntu/pool/universe/w/wheel/python-wheel_0.30.0-0.2_all.deb
  wget -N -P $dest_dir https://packages.ubuntu.com/bionic/amd64/python-dev/download
+ wget -N -P $dest_dir http://archive.ubuntu.com/ubuntu/pool/main/p/python-setuptools/python-setuptools_39.0.1.orig.tar.xz
+ wget -N -P $dest_dir http://archive.ubuntu.com/ubuntu/pool/universe/p/python-pip/python-pip_9.0.1.orig.tar.gz
  echo "Get pip"
  #curl -sL https://bootstrap.pypa.io/get-pip.py | sudo python
 }
