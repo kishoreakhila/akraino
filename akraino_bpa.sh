@@ -2,16 +2,16 @@
 
 echo "Binary Package manager script running..."
 
-if [ -d "/home/otc/bpa" ]
+if [ -d "/home/otc/akraino/bpa" ]
 then
     echo "Dir exits"
 else
     echo "Error: bpa does not exist"
-    mkdir -p ~/bpa
+    mkdir -p ~/akraino/bpa
     echo "Folder created making the installs script run"
 fi
 
-dest_dir=/home/otc/bpa
+dest_dir=~/akraino/bpa
 function _get_go {
     version=1.12.4
     local tarball=go$version.linux-amd64.tar.gz
@@ -55,12 +55,35 @@ function _get_kubespray {
 
 }
 
-function _get_kubespray_componenets {
-   echo "Fetching componenets for Kubespray"
-
+function _get_k8s_components {
+    echo "Fetching k8s components..."
+    if [ -d "~/akraino/bpa/k8s_components" ]
+    then
+        echo "Kubespray dir exits"
+    else
+        mkdir -p ~/akraino/bpa/k8s_components
+    fi
+    k8s_dir=~/akraino/bpa/k8s_components
+    wget -nc -P $k8s_dir https://storage.googleapis.com/kubernetes-release/release/v1.12.7/bin/linux/amd64/kubeadm
+    wget -nc -P $k8s_dir https://storage.googleapis.com/kubernetes-release/release/v1.12.7/bin/linux/amd64/hyperkube
+    wget -nc -P $k8s_dir https://github.com/coreos/etcd/releases/download/v3.2.24/etcd-v3.2.24-linux-amd64.tar.gz
+    wget -nc -P $k8s_dir https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/python-httplib2/0.9.2+dfsg-1/python-httplib2_0.9.2+dfsg.orig.tar.gz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/curl/7.17.1-1ubuntu2/curl_7.17.1.orig.tar.gz 
+    wget -nc -P $k8s_dir http://mirrors.kernel.org/ubuntu/pool/main/r/rsync/rsync_3.1.2-2.1ubuntu1_amd64.deb
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/bash-completion/1:2.8-1ubuntu1/bash-completion_2.8.orig.tar.gz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/socat/1.7.3.2-2ubuntu2/socat_1.7.3.2.orig.tar.bz2
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/unzip/6.0-21ubuntu1/unzip_6.0.orig.tar.gz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/python-apt/1.6.0/python-apt_1.6.0.tar.xz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/aufs-tools/1:4.9+20170918-1ubuntu1/aufs-tools_4.9+20170918.orig.tar.gz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/software-properties/0.96.24.32.1/software-properties_0.96.24.32.1.tar.xz
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/ebtables/2.0.10.4-3.5ubuntu2.18.04.3/ebtables_2.0.10.4.orig.tar.gz
+     
 }
+
 _get_go
 _get_pip
 _get_ansible
 _get_docker
 _get_kubespray
+_get_k8s_components
