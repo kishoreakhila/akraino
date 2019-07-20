@@ -86,9 +86,79 @@ function _get_k8s_components {
      
 }
 
+function _get_addons {
+    if [ -d "~/akraino/bpa/addons/" ]
+    then
+        "addons exists.. ok"
+    else
+        mkdir -p ~/akraino/bpa/addons/
+    fi
+}
+addon_dir=$dest_dir/addons
+
+function _get_addons_multus {
+    if [ -d "~/akraino/bpa/addons/multus" ]
+    then
+        echo "Multus dir exists..."
+    else
+        mkdir -p $addon_dir/multus
+    fi
+    wget -nc -P $addon_dir/multus https://github.com/intel/multus-cni/releases/download/v3.3-tp/multus-cni_3.3-tp_linux_amd64.tar.gz
+
+}
+
+function _get_addons_ovn_kubernetes {
+    if [ -d "~/akraino/bpa/addons/ovn_kubernetes" ]
+    then
+        echo "OVN kubernetes dir exists..."
+    else
+        mkdir -p $addon_dir/ovn_kubernetes
+    fi
+    wget -nc -P $addon_dir/ovn_kubernetes https://github.com/openvswitch/ovn-kubernetes/archive/v0.3.0.tar.gz
+    #ASK about ovn4nfv-k8s-plugin
+}
+
+function _get_addons_virtlet {
+    if [ -d "~/akraino/bpa/addons/virtlet" ]
+    then
+        echo " Virtlet dir exists..."
+    else
+        mkdir -p $addon_dir/virtlet
+    fi
+    wget -nc -P $addon_dir/virtlet https://github.com/Mirantis/criproxy/releases/download/v0.14.0/criproxy
+    wget -nc -P $addon_dir/virtlet https://github.com/Mirantis/virtlet/releases/download/v1.4.4/virtletctl
+}
+
+function _get_addons_nfd {
+    if [ -d "~/akraino/bpa/addons/nfd" ]
+    then
+        echo "NFD dir exists..."
+    else
+        mkdir -p $addon_dir/nfd
+    fi
+    wget -nc -P $addon_dir/nfd https://github.com/kubernetes-incubator/node-feature-discovery
+}
+
+function _get_addons_istio {
+    if [ -d "~/akraino/bpa/addons/istio" ]
+    then
+        echo "ISTIO dir exists..."
+    else
+        mkdir -p $addon_dir/istio
+    fi
+    wget -nc -P $addon_dir/istio https://github.com/istio/istio/releases/download/1.0.3/istio-1.0.3-linux.tar.gz
+}
+
 _get_go
 _get_pip
 _get_ansible
 _get_docker
 _get_kubespray
 _get_k8s_components
+_get_addons
+_get_addons_multus
+_get_addons_ovn_kubernetes 
+_get_addons_virtlet
+_get_addons_nfd
+_get_addons_istio
+
