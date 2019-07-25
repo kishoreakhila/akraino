@@ -114,6 +114,10 @@ function _get_addons_ovn_kubernetes {
     else
         mkdir -p $addon_dir/ovn_kubernetes
     fi
+    echo "Fetching prerequisites for ovn"
+
+    wget -nc -P $addon_dir/ovn_kubernetes http://launchpadlibrarian.net/341403267/openvswitch-common_2.8.0-0ubuntu2_amd64.deb
+    wget -nc -P $addon_dir/ovn_kubernetes https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/openvswitch/2.8.0-0ubuntu2/openvswitch_2.8.0.orig.tar.gz
     wget -nc -P $addon_dir/ovn_kubernetes https://github.com/openvswitch/ovn-kubernetes/archive/v0.3.0.tar.gz
     #ASK about ovn4nfv-k8s-plugin
 }
