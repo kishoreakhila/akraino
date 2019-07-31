@@ -1,17 +1,20 @@
 #!/bin/bash
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
 echo "Binary Package manager script running..."
 
-if [ -d "/home/otc/akraino/bpa" ]
+if [ -d "~/icn/env/bpa" ]
 then
     echo "Dir exits"
 else
-    echo "Error: bpa does not exist"
-    mkdir -p ~/akraino/bpa
-    echo "Folder created making the installs script run"
+    mkdir -p ~/icn/env/bpa
+    echo "Folder created making the installcscript run"
 fi
 
-dest_dir=~/akraino/bpa
+dest_dir=~/icn/env/bpa
 function _get_go {
     version=1.12.4
     local tarball=go$version.linux-amd64.tar.gz
@@ -46,7 +49,7 @@ function _get_docker {
     echo " Fetching deps for docker: apt-https-transport, ca-certs, curl"
     wget -N -P $dest_dir http://launchpadlibrarian.net/338548407/apt-transport-https_1.5_amd64.deb
     wget -N -P $dest_dir  http://launchpadlibrarian.net/364556507/ca-certificates_20180409_all.deb
-    #need to get docker version working. WIP
+    #docker 18.06 already pulled onto bootstrap machine
 }
 
 function _get_kubespray {
@@ -62,19 +65,19 @@ function _get_kubespray {
 
 function _get_k8s_components {
     echo "Fetching k8s components..."
-    if [ -d "~/akraino/bpa/k8s_components" ]
+    if [ -d "$dest_dir/k8s_components" ]
     then
         echo "Kubespray dir exits"
     else
-        mkdir -p ~/akraino/bpa/k8s_components
+        mkdir -p $dest_dir/k8s_components
     fi
-    k8s_dir=~/akraino/bpa/k8s_components
+    k8s_dir=~/icn/env/bpa/k8s_components
     wget -nc -P $k8s_dir https://storage.googleapis.com/kubernetes-release/release/v1.12.7/bin/linux/amd64/kubeadm
     wget -nc -P $k8s_dir https://storage.googleapis.com/kubernetes-release/release/v1.12.7/bin/linux/amd64/hyperkube
     wget -nc -P $k8s_dir https://github.com/coreos/etcd/releases/download/v3.2.24/etcd-v3.2.24-linux-amd64.tar.gz
     wget -nc -P $k8s_dir https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/python-httplib2/0.9.2+dfsg-1/python-httplib2_0.9.2+dfsg.orig.tar.gz
-    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/curl/7.17.1-1ubuntu2/curl_7.17.1.orig.tar.gz 
+    wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/curl/7.17.1-1ubuntu2/curl_7.17.1.orig.tar.gz
     wget -nc -P $k8s_dir http://mirrors.kernel.org/ubuntu/pool/main/r/rsync/rsync_3.1.2-2.1ubuntu1_amd64.deb
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/bash-completion/1:2.8-1ubuntu1/bash-completion_2.8.orig.tar.gz
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/socat/1.7.3.2-2ubuntu2/socat_1.7.3.2.orig.tar.bz2
@@ -83,21 +86,36 @@ function _get_k8s_components {
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/aufs-tools/1:4.9+20170918-1ubuntu1/aufs-tools_4.9+20170918.orig.tar.gz
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/software-properties/0.96.24.32.1/software-properties_0.96.24.32.1.tar.xz
     wget -nc -P $k8s_dir https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/ebtables/2.0.10.4-3.5ubuntu2.18.04.3/ebtables_2.0.10.4.orig.tar.gz
-     
+
+}
+
+function _get_kud_role_deps {
+    if [ -d "$dest_dir/kud_roles" ]
+    then
+        echo "Dir exits"
+    else
+        echo "Kud_roles does not exist"
+        mkdir -p $dest_dir/kud_roles
+    fi
+    kud_dir=$dest_dir/kud_roles
+
+   wget -nc -P $kud_dir https://github.com/andrewrothstein/ansible-go/archive/v2.1.10.tar.gz
+   wget -nc -P $kud_dir https://github.com/andrewrothstein/ansible-kubernetes-helm/archive/v1.2.9.tar.gz
+   wget -nc -P $kud_dir https://github.com/geerlingguy/ansible-role-docker/archive/2.5.2.tar.gz
 }
 
 function _get_addons {
-    if [ -d "~/akraino/bpa/addons/" ]
+    if [ -d "$dest_dir/addons/" ]
     then
-        "addons exists.. ok"
+        echo "addons exists.. ok"
     else
-        mkdir -p ~/akraino/bpa/addons/
+        mkdir -p ~$dest_dir/addons
     fi
 }
 addon_dir=$dest_dir/addons
 
 function _get_addons_multus {
-    if [ -d "~/akraino/bpa/addons/multus" ]
+    if [ -d "$addon_dir/multus" ]
     then
         echo "Multus dir exists..."
     else
@@ -108,7 +126,7 @@ function _get_addons_multus {
 }
 
 function _get_addons_ovn_kubernetes {
-    if [ -d "~/akraino/bpa/addons/ovn_kubernetes" ]
+    if [ -d "$addon_dir/ovn_kubernetes" ]
     then
         echo "OVN kubernetes dir exists..."
     else
@@ -123,7 +141,7 @@ function _get_addons_ovn_kubernetes {
 }
 
 function _get_addons_virtlet {
-    if [ -d "~/akraino/bpa/addons/virtlet" ]
+    if [ -d "$addon_dir/virtlet" ]
     then
         echo " Virtlet dir exists..."
     else
@@ -134,7 +152,7 @@ function _get_addons_virtlet {
 }
 
 function _get_addons_nfd {
-    if [ -d "~/akraino/bpa/addons/nfd" ]
+    if [ -d "$addon_dir/nfd" ]
     then
         echo "NFD dir exists..."
     else
@@ -144,7 +162,7 @@ function _get_addons_nfd {
 }
 
 function _get_addons_istio {
-    if [ -d "~/akraino/bpa/addons/istio" ]
+    if [ -d "$addon_dir/istio" ]
     then
         echo "ISTIO dir exists..."
     else
@@ -159,10 +177,10 @@ _get_ansible
 _get_docker
 _get_kubespray
 _get_k8s_components
+_get_kud_role_deps
 _get_addons
 _get_addons_multus
-_get_addons_ovn_kubernetes 
+_get_addons_ovn_kubernetes
 _get_addons_virtlet
 _get_addons_nfd
 _get_addons_istio
-
