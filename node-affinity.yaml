@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfd-pod-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "feature.node.kubernetes.io/system-os_release.VERSION_ID"
+            operator: In
+            values:
+            - "18.04"
+  containers:
+  - name: with-node-affinity
+    image: gcr.io/google_containers/pause:2.0
