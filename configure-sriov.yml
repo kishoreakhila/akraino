@@ -8,8 +8,28 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-- hosts: localhost
+- hosts: kube-node
+  become: yes
+  pre_tasks:
+    - name: Load kud variables
+      include_vars:
+        file: kud-vars.yml
+  #environment:
+    #PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin/"
   tasks:
+    - name: create SRIOV driver folder in the target destination
+      file:
+        state: directory
+        path: "{{ item }}"
+      with_items:
+        - sriov_driver
+    - name: Copy SRIOV driver to target folder
+      synchronize:
+        src: "{{ sriov_dest }}/{{ package }}/src/iavf.ko"
+        dest: sriov_driver
+      delegate_to: localhost
+- hosts: localhost
+  pre_tasks:
     - name: Load kud variables
       include_vars:
         file: kud-vars.yml
@@ -31,3 +51,12 @@
       - name: Build the default target
         make:
           chdir: /tmp/sriov/iavf-3.7.34/src
+        become: yes
+    - name: create SRIOV driver folder in the target destination
+      file:
+        state: directory
+        path: "{{ item }}"
+      with_items:
+        - sriov_driver
+    - name: Copy SRIOV driver to target folder
+      command: "cp {{ sriov_dest }}/{{ package }}/src/iavf.ko sriov_driver/"
