@@ -56,7 +56,7 @@
         src: "{{ playbook_dir }}/install_iavf_drivers.sh"
         dest: /root/sriov_driver/install.sh
       delegate_to: localhost
-    - name: Changing perm of "/foo/bar.sh", adding "+x"
+    - name: Changing perm of "/sriov_driver/install.sh", adding "+x"
       file: dest=~/sriov_driver/install.sh mode=a+x
     - name: Run a script with arguments
       shell: ~/sriov_driver/install.sh
