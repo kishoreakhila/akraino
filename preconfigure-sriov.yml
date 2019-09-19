@@ -49,10 +49,14 @@
     - name: Copy SRIOV driver to target folder
       synchronize:
         src: "{{ sriov_dest }}/{{ package }}/src/iavf.ko"
-        dest: ~/sriov_driver
+        dest: /root/sriov_driver/
       delegate_to: localhost
     - name: Copy SRIOV driver install script to target folder
       synchronize:
         src: "{{ playbook_dir }}/install_iavf_drivers.sh"
-        dest: ~/sriov_driver/install.sh
+        dest: /root/sriov_driver/install.sh
       delegate_to: localhost
+    - name: Changing perm of "/foo/bar.sh", adding "+x"
+      file: dest=~/sriov_driver/install.sh mode=a+x
+    - name: Run a script with arguments
+      shell: ~/sriov_driver/install.sh
