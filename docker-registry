@@ -1,4 +1,6 @@
 sudo mkdir -p /docker_data/certs/
+//alternatively we can use: 
+//openssl req -new -key example.key -out example.csr -subj "/C=US/ST=CA/L=SC/CN=$FQDN"
 sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.crt
 sudo mkdir -p /docker_data/images
 docker ps
@@ -18,18 +20,8 @@ docker push localhost:5000/my-httpd
 ll /docker_data/images/docker/registry/v2/repositories/
 sudo scp -r /docker_data/certs/domain.crt IP:/home/
 
-//Client:
+#Client:
 sudo mkdir -p /etc/docker/certs.d/FQDN:5000/
 //move the certificate
 sudo cp -rf /home/otc/domain.crt /etc/docker/certs.d/FQDN\:5000/
 docker pull FQDN:5000/my-httpd
-
-
-
-
-
-
-
-
-
-
