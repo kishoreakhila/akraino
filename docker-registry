@@ -1,0 +1,35 @@
+sudo mkdir -p /docker_data/certs/
+sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.crt
+sudo mkdir -p /docker_data/images
+docker ps
+docker images
+docker run -d -p 5000:5000 \
+-v /docker_data/images:/var/lib/registry \
+-v /docker_data/certs:/certs \
+-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+--restart on-failure \
+--name myregistry \
+docker.io/registry
+docker ps
+docker pull httpd
+docker tag docker.io/httpd localhost:5000/my-httpd
+docker push localhost:5000/my-httpd
+ll /docker_data/images/docker/registry/v2/repositories/
+sudo scp -r /docker_data/certs/domain.crt IP:/home/
+
+//Client:
+sudo mkdir -p /etc/docker/certs.d/FQDN:5000/
+//move the certificate
+sudo cp -rf /home/otc/domain.crt /etc/docker/certs.d/FQDN\:5000/
+docker pull FQDN:5000/my-httpd
+
+
+
+
+
+
+
+
+
+
