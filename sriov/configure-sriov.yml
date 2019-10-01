@@ -21,5 +21,3 @@
 }}/../images/sriov-daemonset.yaml"
     - name: Apply SRIOV Network Attachment definition
       shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir }}/sriov-nad.yml"
-    - name: Apply SRIOV sample Pod
-      shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir }}/sriov-eno2-pod.yml"
