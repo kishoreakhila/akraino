@@ -9,10 +9,12 @@
 ##############################################################################
 
 - hosts: localhost
+  become: yes
   pre_tasks:
     - name: Load kud variables
       include_vars:
         file: kud-vars.yml
+  tasks:
     - name: create sriov folder
       file:
         state: directory
@@ -32,14 +34,6 @@
         make:
           chdir: /tmp/sriov/iavf-3.7.34/src
         become: yes
-
-- hosts: kube-node
-  become: yes
-  pre_tasks:
-    - name: Load kud variables
-      include_vars:
-        file: kud-vars.yml
-  tasks:
     - name: create SRIOV driver folder in the target destination
       file:
         state: directory
