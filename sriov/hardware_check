@@ -8,20 +8,23 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-set -o errexit
-set -o nounset
 set -o pipefail
 
+source /etc/environment
+
 ethernet_adpator_version=$( lspci | grep "Ethernet Controller X710" | head -n 1 | cut -d " " -f 8 )
-SRIOV_ENABLED=false
-
+if [ -z "$ethernet_adpator_version" ]; then
+    echo "The ethernet adaptor value is not set. SRIOV test case cannot run on this machine."
+    exit 0
+fi
+SRIOV_ENABLED=${ethernet_adpator_version:-"false"}
 #checking for the right hardware version of NIC on the machine
-
-if [ $ethernet_adpator_version == "X710" ]; then
-    SRIOV_ENABLED=true
+if [ "$ethernet_adpator_version" == "X710" ]; then
+    echo "SRIOV_ENABLED=true" | sudo tee --append /etc/environment
     echo "NIC card specs match. SRIOV option avaiable for this version"
 else
-    echo "Failed. The version supplied does not match.\'\'n Test cannot be exec."
+    echo "SRIOV_ENABLED=false" | sudo tee --append /etc/environment
+    echo "The version supplied does not match. Add-on cannot be run. H/w not supported"
 fi
-echo $SRIOV_ENABLED
-export SRIOV_ENABLED
+
+source /etc/environment
