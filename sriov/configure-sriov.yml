@@ -14,10 +14,8 @@
 - hosts: localhost
   tasks:
     - name: Apply SRIOV CNI
-      shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir
-}}/../images/sriov-cni.yaml"
+      shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir }}/../images/sriov-cni.yaml"
     - name: Apply SRIOV DaemonSet
-      shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir
-}}/../images/sriov-daemonset.yaml"
+      shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir }}/../images/sriov-daemonset.yaml"
     - name: Apply SRIOV Network Attachment definition
       shell: "/usr/local/bin/kubectl apply -f {{ playbook_dir }}/sriov-nad.yml"
