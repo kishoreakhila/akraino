@@ -14,27 +14,25 @@ set -o pipefail
 
 ethernet_adpator_version=$( lspci | grep "Ethernet Controller X710" | head -n 1 | cut -d " " -f 8 )
 
-#checking for the right hardware version of NIC on the machine
+if [ -z "$ethernet_adpator_version" ]; then
+    echo "Value not set. SRIOV test case cannot be run"
+    exit 0
+fi
 
+#checking for the right hardware version of NIC on the machine
 if [ $ethernet_adpator_version == "X710" ]; then
     echo "NIC card specs match. SRIOV option avaiable for this version."
 else
-    echo "Failed. The version supplied does not match.\'\'n Test cannot be exec."
+    echo -e "Failed. The version supplied does not match.\nTest cannot be exec."
+    exit 0
 fi
 
-kubectl describe node | grep  "intel.com/intel_sriov_700"
-
-rm -f $HOME/*.yaml
-
 pod_name=pod-case-01
+rm -f $HOME/$pod_name.yaml
+kubectl delete pod $pod_name --ignore-not-found=true --now --wait
+allocated_node_resource=$(kubectl describe node | grep "intel.com/intel_sriov_700" | tail -n1 |awk '{print $(NF)}')
 
-kubectl delete pod $pod_name --ignore-not-found=true --now
-
-    while kubectl get pod $pod_name &>/dev/null; do
-        sleep 5
-    done
-resource=$(kubectl describe node | grep  "intel.com/intel_sriov_700" )
-
+echo "The allocated resource of the node is: " $allocated_node_resource
 cat << POD > $HOME/$pod_name.yaml
 apiVersion: v1
 kind: Pod
@@ -64,11 +62,15 @@ kubectl create -f $HOME/$pod_name.yaml --validate=false
                 status_phase=$new_phase
             fi
             if [[ $new_phase == "Running" ]]; then
-                echo " Test is complete.."
+                echo " Pod is running.."
             fi
             if [[ $new_phase == "Err"* ]]; then
                 exit 1
             fi
         done
     done
-kubectl describe node | grep  "intel.com/intel_sriov_700" | tail -n1
+allocated_node_resource=$(kubectl describe node | grep "intel.com/intel_sriov_700" | tail -n1 |awk '{print $(NF)}')
+
+echo " The current resource allocation after the pod creation is: " $allocated_node_resource
+kubectl delete pod $pod_name --now
+echo "Test complete"
