@@ -31,7 +31,9 @@
           dest: "{{ qat_dest }}/{{ qat_package }}"
           remote_src: yes
       - name: Configure the target
-        command: "chdir={{ qat_dest }}/{{ qat_package }} ./configure --enable-icp-sriov=host"
+        command: ./configure --enable-icp-sriov=host
+        args:
+          chdir: "{{ qat_dest }}/{{ qat_package }}"
       - name: Build the default target
         make:
           chdir: "{{ qat_dest }}/{{ qat_package }}"
@@ -52,10 +54,10 @@
     - name: Copy QAT driver to target destination
       command: "cp -r {{ qat_dest }}/{{ qat_package }}/build/ /root/qat_driver/"
     - name: Copy QAT driver install script to target folder
-      command: "cp {{ playbook_dir }}/install_qat.sh /root/qat_driver/install.sh"
+      command: "cp {{ playbook_dir }}/install_qat.sh /root/qat_driver/build/install.sh"
     - name: Copy QAT to target folder
-      command: "cp -r {{ qat_dest }}/{{ qat_package }}/qat /root/qat_driver"
+      command: "cp /etc/default/qat /root/qat_driver/build"
     - name: Changing perm of "install.sh", adding "+x"
-      file: dest=~/qat_driver/install.sh mode=a+x
+      file: dest=~/qat_driver/build/install.sh mode=a+x
     - name: Run a script with arguments
-      shell: ~/qat_driver/install.sh
+      shell: ~/qat_driver/build/install.sh
