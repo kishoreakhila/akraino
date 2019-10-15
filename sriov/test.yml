@@ -1,0 +1,12 @@
+- hosts: kube-node
+  become: yes
+  tasks:
+  - name: Ansible register variable basic example
+    shell: /root/sriov_driver/sriov_hardware_check.sh
+    args:
+      chdir: "/root/sriov_driver"
+    register: find_output
+  - debug:
+      var: find_output.stdout
+  - set_fact:
+      SRIOV: "{{ find_output.stdout }}"
