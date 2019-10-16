@@ -1,0 +1,52 @@
+---
+# SPDX-license-identifier: Apache-2.0
+##############################################################################
+# Copyright (c) 2018
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+- hosts: kube-node
+  become: yes
+  pre_tasks:
+    - name: create SRIOV driver folder in the target destination
+      file:
+        state: directory
+        path: "{{ item }}"
+      with_items:
+        - sriov
+    - copy:
+        src: "{{ inventory_dir }}/../sriov_hardware_check.sh"
+        dest: /home/vagrant/sriov/sriov_hardware_check.sh
+      become: yes
+    - name: Changing perm of "sh", adding "+x"
+      file: dest=/home/vagrant/sriov/sriov_hardware_check.sh mode=a+x
+    - name: Register SRIOV
+      shell: "echo {{ SRIOV | default(False) }}"
+    - name: Run the script and register the SRIOV VARIABLE
+      shell: /home/vagrant/sriov/sriov_hardware_check.sh
+      args:
+        chdir: "/home/vagrant/sriov/"
+      become: yes
+      register: find_output
+    - debug:
+        var: find_output.stdout
+    - set_fact:
+        SRIOV: "{{ find_output.stdout }}"
+    - debug:
+        var: SRIOV
+    - name: check if the varible is set
+      command: "echo {{ SRIOV }}"
+    - name: check if the varible is set
+      command: touch ~/allset.txt
+      when: SRIOV == True
+    - block:
+      - name: "end play if SRIOV is False"
+        debug:
+          msg: "nothing to do, ending play"
+      - meta: end_play
+      when: SRIOV == false
+
+
