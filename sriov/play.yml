@@ -19,16 +19,16 @@
         - sriov
     - copy:
         src: "{{ inventory_dir }}/../sriov_hardware_check.sh"
-        dest: /home/vagrant/sriov/sriov_hardware_check.sh
-      become: yes
+        dest: ~/sriov/sriov_hardware_check.sh
+        remote_src: yes
     - name: Changing perm of "sh", adding "+x"
-      file: dest=/home/vagrant/sriov/sriov_hardware_check.sh mode=a+x
+      file: dest=~/sriov/sriov_hardware_check.sh mode=a+x
     - name: Register SRIOV
       shell: "echo {{ SRIOV | default(False) }}"
     - name: Run the script and register the SRIOV VARIABLE
-      shell: /home/vagrant/sriov/sriov_hardware_check.sh
+      shell: ~/sriov/sriov_hardware_check.sh
       args:
-        chdir: "/home/vagrant/sriov/"
+        chdir: "~/sriov/"
       become: yes
       register: find_output
     - debug:
@@ -38,8 +38,6 @@
     - debug:
         var: SRIOV
     - name: check if the varible is set
-      command: "echo {{ SRIOV }}"
-    - name: check if the varible is set
       command: touch ~/allset.txt
       when: SRIOV == True
     - block:
@@ -48,5 +46,3 @@
           msg: "nothing to do, ending play"
       - meta: end_play
       when: SRIOV == false
-
-
