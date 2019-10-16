@@ -8,26 +8,6 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-- hosts: kube-node
-  become: yes
-  pre_tasks:
-    - name: Copy SRIOV hardware check.
-      command: "cp /home/akr/k8s/kud/hosting_providers/vagrant/sriov_hardware_check.sh ~/"
-    - name: Ansible register variable basic example
-      shell: ~/sriov_hardware_check.sh
-      args:
-        chdir: "~/"
-      register: find_output
-    - debug:
-        var: find_output.stdout
-    - set_fact:
-        SRIOV: "{{ find_output.stdout }}"
-    - name: check if the varible is set
-      command: "echo {{ SRIOV }}"
-    - name: check if the varible is set
-      command: touch ~/allset.txt
-      when: SRIOV == True
-
 - hosts: localhost
   become: yes
   pre_tasks:
@@ -35,27 +15,29 @@
       include_vars:
         file: kud-vars.yml
   tasks:
-    - name: create sriov folder
+    - name: Create QAT dest folder
       file:
         state: directory
-        path: "{{ sriov_dest }}"
-      when: SRIOV == True
-    #- name: getting SRIOV drivers
-      #block:
-      #- name: download Sriov driver tarball
-        #get_url:
-          #url: "{{ driver_url }}"
-          #dest: "/tmp/{{ package }}.tar.gz"
-    - name: extract sriov source code
-      unarchive:
-         src: "/tmp/{{ package }}.tar.gz"
-         dest: "{{ sriov_dest }}"
-      when: SRIOV == True
-    - name: Build the default target
-      make:
-        chdir: "/tmp/sriov/{{ package }}/src"
-      become: yes
-      when: SRIOV == True
+        path: "{{ qat_dest }}/{{ qat_package }}"
+    - name: Fetching QAT driver
+      block:
+      - name: Download QAT driver tarball
+        get_url:
+          url: "{{ driver_url }}"
+          dest: "/tmp/{{ qat_package }}.tar.gz"
+      - name: Extract QAT source code
+        unarchive:
+          src: "/tmp/{{ qat_package }}.tar.gz"
+          dest: "{{ qat_dest }}/{{ qat_package }}"
+          remote_src: yes
+      - name: Configure the target
+        command: ./configure --enable-icp-sriov=host
+        args:
+          chdir: "{{ qat_dest }}/{{ qat_package }}"
+      - name: Build the default target
+        make:
+          chdir: "{{ qat_dest }}/{{ qat_package }}"
+        become: yes
 - hosts: kube-node
   become: yes
   pre_tasks:
@@ -63,22 +45,19 @@
       include_vars:
         file: kud-vars.yml
   tasks:
-    - name: create SRIOV driver folder in the target destination
+    - name: Create QAT driver folder in the target destination
       file:
         state: directory
         path: "{{ item }}"
       with_items:
-        - sriov_driver
-      when: SRIOV == True
-    - name: Copy SRIOV driver to target destination
-      command: "cp {{ sriov_dest }}/{{ package }}/src/iavf.ko /root/sriov_driver/"
-      when: SRIOV == True
-    - name: Copy SRIOV driver install script to target folder
-      command: "cp {{ playbook_dir }}/install_iavf_drivers.sh /root/sriov_driver/install.sh"
-      when: SRIOV == True
+        - qat_driver
+    - name: Copy QAT driver to target destination
+      command: "cp -r {{ qat_dest }}/{{ qat_package }}/build/ /root/qat_driver/"
+    - name: Copy QAT driver install script to target folder
+      command: "cp {{ playbook_dir }}/install_qat.sh /root/qat_driver/build/install.sh"
+    - name: Copy QAT to target folder
+      command: "cp /etc/default/qat /root/qat_driver/build"
     - name: Changing perm of "install.sh", adding "+x"
-      file: dest=~/sriov_driver/install.sh mode=a+x
-      when: SRIOV == True
+      file: dest=~/qat_driver/build/install.sh mode=a+x
     - name: Run a script with arguments
-      shell: ~/sriov_driver/install.sh
-      when: SRIOV == True
+      command: ./install.sh chdir=/root/qat_driver/build
