@@ -11,41 +11,67 @@
 - hosts: kube-node
   become: yes
   pre_tasks:
-    - name: Copy SRIOV hardware check.
-      command: "cp /home/akr/k8s/kud/hosting_providers/vagrant/sriov_hardware_check.sh ~/"
-    - name: Ansible register variable basic example
-      shell: ~/sriov_hardware_check.sh
+    - name: create SRIOV driver folder in the target destination
+      file:
+        state: directory
+        path: "/root/{{ item }}"
+      with_items:
+        - sriov
+    - copy:
+        src: "{{ playbook_dir }}/sriov_hardware_check.sh"
+        dest: sriov
+    - name: Changing perm of "sh", adding "+x"
+      file: dest=/root/sriov/sriov_hardware_check.sh mode=a+x
+    - name: Register SRIOV
+      shell: "echo {{ SRIOV | default(False) }}"
+    - name: Run the script and Re-evaluate the variable
+      shell: ./sriov_hardware_check.sh
       args:
-        chdir: "~/"
-      register: find_output
+        chdir: "sriov"
+      become: yes
+      register: output
     - debug:
-        var: find_output.stdout
+        var: output.stdout
     - set_fact:
-        SRIOV: "{{ find_output.stdout }}"
-    - name: check if the varible is set
-      command: "echo {{ SRIOV }}"
+        SRIOV: "{{ output.stdout }}"
+    - debug:
+        var: SRIOV
     - name: check if the varible is set
       command: touch ~/allset.txt
       when: SRIOV == True
+    - block:
+      - name: "End play if SRIOV is False"
+        #debug:
+          #msg: "nothing to do, ending play"
+      - meta: end_play
+      when: SRIOV == false
+#- include: play.yml SRIOV='False'
 
 - hosts: localhost
   become: yes
   pre_tasks:
+    - block:
+      - name: "End play if SRIOV is False"
+        debug:
+          msg: "SRIOV option not available, ending play"
+      - meta: end_play
     - name: Load kud variables
       include_vars:
         file: kud-vars.yml
+      when: SRIOV == True
   tasks:
     - name: create sriov folder
       file:
         state: directory
         path: "{{ sriov_dest }}"
       when: SRIOV == True
-    #- name: getting SRIOV drivers
-      #block:
-      #- name: download Sriov driver tarball
-        #get_url:
-          #url: "{{ driver_url }}"
-          #dest: "/tmp/{{ package }}.tar.gz"
+      ignore_errors: yes
+    - name: getting SRIOV drivers
+      block:
+      - name: download Sriov driver tarball
+        get_url:
+          url: "{{ driver_url }}"
+          dest: "/tmp/{{ package }}.tar.gz"
     - name: extract sriov source code
       unarchive:
          src: "/tmp/{{ package }}.tar.gz"
@@ -77,8 +103,10 @@
       command: "cp {{ playbook_dir }}/install_iavf_drivers.sh /root/sriov_driver/install.sh"
       when: SRIOV == True
     - name: Changing perm of "install.sh", adding "+x"
-      file: dest=~/sriov_driver/install.sh mode=a+x
+      file: dest=/root/sriov_driver/install.sh mode=a+x
       when: SRIOV == True
     - name: Run a script with arguments
-      shell: ~/sriov_driver/install.sh
+      shell: ./install.sh
+      args:
+        chdir: "/root/sriov_driver"
       when: SRIOV == True
