@@ -1,3 +1,25 @@
+- hosts: kube-node
+  become: yes
+  pre_tasks:
+    - name: Ansible register variable basic example
+      shell: /root/sriov_driver/sriov_hardware_check.sh
+      args:
+        chdir: "/root/sriov_driver"
+      register: find_output
+    - debug:
+        var: find_output.stdout
+    - set_fact:
+        SRIOV: "{{ find_output.stdout }}"
+    - name: check if the varible is set
+      command: "echo {{ SRIOV }}"
+    - name: check if the varible is set
+      command: touch ~/sriov_driver/allset.txt
+      when: SRIOV == True
+
+
+
+
+
 #!/bin/bash
 # SPDX-license-identifier: Apache-2.0
 ##############################################################################
