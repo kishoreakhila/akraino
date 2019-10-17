@@ -18,23 +18,27 @@
       with_items:
         - sriov
     - copy:
-        src: "{{ inventory_dir }}/../sriov_hardware_check.sh"
-        dest: ~/sriov/sriov_hardware_check.sh
-        remote_src: yes
+        src: "{{ playbook_dir }}/sriov_hardware_check.sh"
+        dest: sriov
+    #- name: Copy script from installer to target node
+      #command: "cp /home/vagrant/multicloud-k8s/kud/hosting_providers/vagrant/sriov_hardware_check.sh ~/sriov/"
+    #- name: Copy script from installer to target node
+      #synchronize: src="{{ inventory_dir }}/../sriov_hardware_check.sh" dest=~/sriov/sriov_hardware_check.sh
+      #delegate_to: localhost
     - name: Changing perm of "sh", adding "+x"
-      file: dest=~/sriov/sriov_hardware_check.sh mode=a+x
+      file: dest=sriov/sriov_hardware_check.sh mode=a+x
     - name: Register SRIOV
       shell: "echo {{ SRIOV | default(False) }}"
-    - name: Run the script and register the SRIOV VARIABLE
-      shell: ~/sriov/sriov_hardware_check.sh
+    - name: Run the script and Re-evaluate the variable
+      shell: ./sriov_hardware_check.sh
       args:
-        chdir: "~/sriov/"
+        chdir: "sriov"
       become: yes
-      register: find_output
+      register: output
     - debug:
-        var: find_output.stdout
+        var: output.stdout
     - set_fact:
-        SRIOV: "{{ find_output.stdout }}"
+        SRIOV: "{{ output.stdout }}"
     - debug:
         var: SRIOV
     - name: check if the varible is set
