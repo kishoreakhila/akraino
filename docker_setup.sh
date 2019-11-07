@@ -23,7 +23,7 @@ function _configure docker {
     fi
     sudo systemctl daemon-reload
 
-    echo "Ak_OPTS=\" --insecure-registry=$fqdn:5000 --max-concurrent-downloads $max_concurrent_downloads \"" | sudo tee --append /etc/default/docker
+    echo "DOCKER_OPTS=\" --insecure-registry=$fqdn:5000 --max-concurrent-downloads $max_concurrent_downloads \"" | sudo tee --append /etc/default/docker
     if [[ -z $(groups | grep docker) ]]; then
         sudo usermod -aG docker $USER
     fi
