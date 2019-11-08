@@ -23,21 +23,22 @@
       block:
       - name: Download QAT driver tarball
         get_url:
-          url: "{{ driver_url }}"
+          url: "{{ qat_driver_url }}"
           dest: "/tmp/{{ qat_package }}.tar.gz"
-      - name: Extract QAT source code
-        unarchive:
-          src: "/tmp/{{ qat_package }}.tar.gz"
-          dest: "{{ qat_dest }}/{{ qat_package }}"
-          remote_src: yes
-      - name: Configure the target
-        command: ./configure --enable-icp-sriov=host
-        args:
-          chdir: "{{ qat_dest }}/{{ qat_package }}"
-      - name: Build the default target
-        make:
-          chdir: "{{ qat_dest }}/{{ qat_package }}"
-        become: yes
+      #- name: Extract QAT source code
+        #unarchive:
+          #src: "/tmp/{{ qat_package }}.tar.gz"
+          #dest: "{{ qat_dest }}/{{ qat_package }}"
+          #remote_src: yes
+    #- name: Creates directory remote host
+      #file:
+        #path: /tmp/akhila
+        #state: directory
+    - name: Ansible copy directory to the remote server
+      copy:
+        src: "/tmp/{{ qat_package }}.tar.gz"
+        dest: /tmp/
+
 - hosts: kube-node
   become: yes
   pre_tasks:
@@ -45,19 +46,39 @@
       include_vars:
         file: kud-vars.yml
   tasks:
-    - name: Create QAT driver folder in the target destination
+    - name: Create a destination for driver folder in the target's /tmp
       file:
         state: directory
-        path: "{{ item }}"
+        path: "/tmp/{{ item }}"
       with_items:
-        - qat_driver
-    - name: Copy QAT driver to target destination
-      command: "cp -r {{ qat_dest }}/{{ qat_package }}/build/ /root/qat_driver/"
-    - name: Copy QAT driver install script to target folder
-      command: "cp {{ playbook_dir }}/install_qat.sh /root/qat_driver/build/install.sh"
-    - name: Copy QAT to target folder
-      command: "cp /etc/default/qat /root/qat_driver/build"
-    - name: Changing perm of "install.sh", adding "+x"
-      file: dest=~/qat_driver/build/install.sh mode=a+x
-    - name: Run a script with arguments
-      command: ./install.sh chdir=/root/qat_driver/build
+        - quickassist
+    - copy:
+        src: /tmp/qat1.7.l.4.6.0-00025.tar.gz
+        dest: /tmp/quickassist/
+    #- name: Copy QAT driver package to kube-node dest
+      #command: "cp -r /tmp/qat1.7.l.4.6.0-00025.tar.gz /tmp/akhila/"
+      #remote_src: yes
+#      - name: Configure the target
+#        command: ./configure --enable-icp-sriov=host
+#        args:
+#          chdir: "{{ qat_dest }}/{{ qat_package }}"
+#      - name: Build the default target
+#        make:
+#          chdir: "{{ qat_dest }}/{{ qat_package }}"
+#        become: yes
+#    - name: Create QAT driver folder in the target destination
+#      file:
+#        state: directory
+#        path: "{{ item }}"
+#      with_items:
+#        - qat_driver
+#    - name: Copy QAT driver to target destination
+#      command: "cp -r {{ qat_dest }}/{{ qat_package }}/build/ /root/qat_driver/"
+#    - name: Copy QAT driver install script to target folder
+#      command: "cp {{ playbook_dir }}/install_qat.sh /root/qat_driver/build/install.sh"
+#    - name: Copy QAT to target folder
+#      command: "cp /etc/default/qat /root/qat_driver/build"
+#    - name: Changing perm of "install.sh", adding "+x"
+#      file: dest=~/qat_driver/build/install.sh mode=a+x
+#    - name: Run a script with arguments
+#      command: ./install.sh chdir=/root/qat_driver/build
