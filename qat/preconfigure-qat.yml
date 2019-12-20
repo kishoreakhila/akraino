@@ -32,6 +32,7 @@
     - name: Load kud variables
       include_vars:
         file: kud-vars.yml
+        file: qat_driver_packages.yml
   tasks:
     - name: Create a destination for driver folder in the target's /tmp
       file:
@@ -61,6 +62,11 @@
       register: output
     - debug:
         var: output.stdout_lines
+    - name: bootstrap | install qat compilation packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ qat_driver_pkgs }}"
     - copy:
         src: /tmp/qat1.7.l.4.6.0-00025.tar.gz
         dest: /tmp/qat
